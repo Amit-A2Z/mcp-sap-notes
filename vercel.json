@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "",
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 300,
+      "includeFiles": "node_modules/@sparticuz/chromium/bin/**"
+    },
+    "api/health.ts": { "maxDuration": 10 }
+  },
+  "rewrites": [
+    { "source": "/mcp", "destination": "/api" },
+    { "source": "/health", "destination": "/api" },
+    { "source": "/refresh", "destination": "/api" },
+    { "source": "/chromium-check", "destination": "/api" }
+  ],
+  "crons": [
+    { "path": "/refresh", "schedule": "0 2 * * *" }
+  ]
+}

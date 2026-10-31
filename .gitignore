@@ -12,13 +12,21 @@ dist/
 .env
 .env.local
 .env.*.local
+.env*
 
 # SAP certificates and tokens
 certs/
 storageState.json
 token-cache.json
+sso-storage-state.json
+http-access-token
 *.pfx
 *.p12
+*.pem
+*.key
+
+# Vercel (project link, pulled env files, build output)
+.vercel
 
 # Debug files and screenshots
 debug-*.png
@@ -86,8 +94,10 @@ dist
 tmp/
 temp/
 
-# IDE
-.vscode/
+# IDE (the shared debug setup in .vscode is kept)
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 .idea/
 *.swp
 *.swo

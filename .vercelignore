@@ -1,0 +1,16 @@
+# The Vercel CLI uses this file INSTEAD of .gitignore, so secrets are listed here too.
+.env*
+*.pfx
+*.p12
+certs
+token-cache.json
+sso-storage-state.json
+storageState.json
+http-access-token
+dist
+logs
+images
+test
+docs
+*.md
+scripts
