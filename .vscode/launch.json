@@ -1,0 +1,95 @@
+{
+  // Debug setup for the SAP Notes MCP server. See docs/vercel-debugging.md.
+  // Secrets are never in this file. scripts/debug-env.sh reads them from the Keychain at launch.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Starts a small MCP client. The client starts the stdio server with the inspector on 9230.
+      "name": "stdio client (starts the server with --inspect=9230)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/mcp-stdio-client.mjs",
+      "args": ["--inspect"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "presentation": { "hidden": true }
+    },
+    {
+      "name": "attach to stdio server (port 9230)",
+      "type": "node",
+      "request": "attach",
+      "port": 9230,
+      "timeout": 90000,
+      "sourceMaps": true,
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "presentation": { "hidden": true }
+    },
+    {
+      // `vercel dev` starts a NEW function process for every request. Each one waits on 9229
+      // (scripts/vercel-dev-debug.sh), so this config must re-attach every time: "restart".
+      "name": "attach to Vercel function (port 9229)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "timeout": 60000,
+      "sourceMaps": true,
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "presentation": { "hidden": true }
+    },
+    {
+      // Launches the HTTP server under the debugger. Call it from a terminal:
+      //   node scripts/mcp-http-client.mjs
+      "name": "HTTP server (src/http-mcp-server.ts, tsx)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "${workspaceFolder}/scripts/debug-env.sh",
+      "runtimeArgs": ["node", "--import", "tsx"],
+      "program": "${workspaceFolder}/src/http-mcp-server.ts",
+      "env": { "AUTO_START": "true", "HTTP_PORT": "3123", "LOG_LEVEL": "info" },
+      // tsx runs the .ts files directly. Ignore the maps in dist/ so frames show src/*.ts.
+      "outFiles": ["${workspaceFolder}/src/**/*.js"],
+      "resolveSourceMapLocations": ["${workspaceFolder}/src/**", "!**/node_modules/**"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      // Real certificate login. test-auth.js prints the first characters of the cookie header,
+      // so do not share this terminal output.
+      "name": "test/test-auth.js (certificate login)",
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "runtimeExecutable": "${workspaceFolder}/scripts/debug-env.sh",
+      "runtimeArgs": ["node"],
+      "program": "${workspaceFolder}/test/test-auth.js",
+      "env": { "HEADFUL": "false" },
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    }
+  ],
+  "compounds": [
+    {
+      // F5 here. Set a breakpoint first, for example in searchNotes (src/sap-notes-api.ts, line 112).
+      "name": "stdio: client + server (breakpoints in the server)",
+      "configurations": ["attach to stdio server (port 9230)", "stdio client (starts the server with --inspect=9230)"],
+      "stopAll": true,
+      "presentation": { "order": 1 }
+    },
+    {
+      // Starts `vercel dev` (task below), then attaches. Open http://localhost:3000/api/health
+      // in a browser or curl it. Set a breakpoint in api/health.ts first.
+      "name": "vercel dev: function (breakpoints in api/health.ts)",
+      "configurations": ["attach to Vercel function (port 9229)"],
+      "preLaunchTask": "vercel dev (debug)",
+      "stopAll": true,
+      "presentation": { "order": 2 }
+    }
+  ]
+}

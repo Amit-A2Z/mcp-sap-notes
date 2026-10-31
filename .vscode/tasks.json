@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "npm",
+      "script": "build",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": "$tsc"
+    },
+    {
+      // Runs `vercel dev` on port 3000. The function process waits for a debugger on 9229.
+      // Stop it with the trash icon in the terminal panel. Stopping the debugger does not stop it.
+      "label": "vercel dev (debug)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/vercel-dev-debug.sh",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vercel-dev",
+        "pattern": { "regexp": "^__never_matches__$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "vercel-dev-debug:",
+          "endsPattern": "Ready! Available at"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      // Plain `vercel dev`, no debugger. A new process per request, nothing waits.
+      "label": "vercel dev",
+      "type": "shell",
+      "command": "vercel dev --listen 3000",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vercel-dev-plain",
+        "pattern": { "regexp": "^__never_matches__$" },
+        "background": { "activeOnStart": true, "beginsPattern": "Local resources", "endsPattern": "Ready! Available at" }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

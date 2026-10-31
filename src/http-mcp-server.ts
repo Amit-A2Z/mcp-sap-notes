@@ -74,6 +74,34 @@ class HttpSapNoteMcpServer {
   }
 
   /**
+   * The Express app, for hosts that serve it themselves (Vercel) instead of calling start().
+   */
+  get expressApp(): express.Application {
+    return this.app;
+  }
+
+  /**
+   * Make sure the SAP session works, and prove it with a real search. The auth library can report a
+   * successful login even when SAP did not accept the certificate, so a session is only trusted after
+   * a search returned results. One fresh login is tried before giving up. Used by the scheduled refresh.
+   */
+  async verifySession(): Promise<void> {
+    const attempt = async (): Promise<void> => {
+      const { cookieHeader } = await this.authenticator.ensureSession();
+      const response = await this.sapNotesClient.searchNotes('SAP', cookieHeader, 1);
+      if (!response.totalResults) throw new Error('SAP session check returned no results');
+    };
+
+    try {
+      await attempt();
+    } catch (firstError) {
+      logger.warn(`SAP session check failed, logging in again: ${firstError instanceof Error ? firstError.message : String(firstError)}`);
+      this.authenticator.invalidateAuth();
+      await attempt();
+    }
+  }
+
+  /**
    * Load configuration from environment variables
    */
   private loadConfig(): ServerConfig {
